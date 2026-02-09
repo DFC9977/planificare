@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Planificare Vizite</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- SheetJS (Excel import/export) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script defer src="app.js"></script>
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">PV</div>
+      <div>
+        <div class="title">Planificare Vizite</div>
+        <div class="subtitle">Import Excel → Planificare → Export Excel</div>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <button class="btn ghost" id="btnReset">Reset date</button>
+      <button class="btn" id="btnExport">📤 Export Excel</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-tab="tab-clients">Clienți</button>
+      <button class="tab" data-tab="tab-agents">Agenți & Rute</button>
+      <button class="tab" data-tab="tab-activities">Activități</button>
+      <button class="tab" data-tab="tab-plan">Planificare</button>
+      <button class="tab" data-tab="tab-reports">Raport</button>
+    </nav>
+
+    <!-- ============ CLIENTS ============ -->
+    <section id="tab-clients" class="panel active">
+      <div class="grid2">
+        <div class="card">
+          <h2>Import clienți din Excel</h2>
+          <p class="hint">
+            Excel-ul poate avea coloane cu nume variate. Aplicația caută automat: <b>Client/Nume</b> și <b>Adresa</b>.
+          </p>
+          <input type="file" id="fileClients" accept=".xlsx,.xls" />
+          <div class="row">
+            <label class="inline">
+              Sheet:
+              <input id="sheetName" placeholder="(gol = primul sheet)" />
+            </label>
+            <button class="btn" id="btnImportClients">Importă</button>
+          </div>
+
+          <div class="divider"></div>
+
+          <h3>Adaugă client manual</h3>
+          <div class="form">
+            <input id="newClientName" placeholder="Nume client" />
+            <input id="newClientAddress" placeholder="Adresă (opțional)" />
+            <button class="btn" id="btnAddClient">Adaugă client</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Lista clienți</h2>
+          <div class="row wrap">
+            <input id="clientSearch" placeholder="Caută client..." />
+            <button class="btn ghost" id="btnClearClients">Șterge toți clienții</button>
+          </div>
+
+          <div class="table-wrap">
+            <table class="table" id="tblClients">
+              <thead>
+                <tr>
+                  <th>Client</th>
+                  <th>Adresă</th>
+                  <th>Frecvență</th>
+                  <th>Săpt.</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <p class="hint">
+            Frecvență: <b>lunar</b> cu săptămâni în care are loc vizita (1–5). Planificarea se generează pe interval în tab-ul Planificare.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ AGENTS & ROUTES ============ -->
+    <section id="tab-agents" class="panel">
+      <div class="grid2">
+        <div class="card">
+          <h2>Agenți</h2>
+          <div class="form">
+            <input id="newAgentName" placeholder="Nume agent" />
+            <button class="btn" id="btnAddAgent">Adaugă agent</button>
+          </div>
+          <div class="table-wrap">
+            <table class="table" id="tblAgents">
+              <thead><tr><th>Agent</th><th></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Rute</h2>
+          <div class="form">
+            <input id="newRouteName" placeholder="Nume rută" />
+            <select id="newRouteAgent"></select>
+            <button class="btn" id="btnAddRoute">Adaugă rută</button>
+          </div>
+          <div class="table-wrap">
+            <table class="table" id="tblRoutes">
+              <thead><tr><th>Rută</th><th>Agent</th><th></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p class="hint">Poți lăsa agentul gol la rută dacă vrei.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ACTIVITIES ============ -->
+    <section id="tab-activities" class="panel">
+      <div class="grid2">
+        <div class="card">
+          <h2>Listă activități (configurabilă)</h2>
+          <p class="hint">Activitățile se selectează multiple la vizită + există câmp „Altceva”.</p>
+          <div class="form">
+            <input id="newActivityName" placeholder="Ex: comanda" />
+            <button class="btn" id="btnAddActivity">Adaugă activitate</button>
+          </div>
+
+          <div class="table-wrap">
+            <table class="table" id="tblActivities">
+              <thead><tr><th>Activitate</th><th></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Notițe</h2>
+          <ul class="hint">
+            <li>În export, activitățile multiple sunt concatenate într-o singură celulă.</li>
+            <li>Ziua se calculează automat din dată (fără diacritice).</li>
+            <li>Format export: <b>Zi | Data | Client | Activitate | Detalii | Observatii</b>.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PLANNING ============ -->
+    <section id="tab-plan" class="panel">
+      <div class="card">
+        <h2>Interval planificare</h2>
+        <div class="row wrap">
+          <label class="inline">
+            De la:
+            <input type="date" id="fromDate" />
+          </label>
+          <label class="inline">
+            Până la:
+            <input type="date" id="toDate" />
+          </label>
+
+          <button class="btn" id="btnGenerate">Generează vizite (din frecvențe)</button>
+          <button class="btn ghost" id="btnClearVisits">Șterge vizitele din interval</button>
+        </div>
+
+        <p class="hint">
+          Generarea creează vizite în săptămânile selectate per client. Apoi le poți ajusta manual în tabel (date, agent, rută, activități etc.).
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Adaugă vizită manual</h2>
+        <div class="grid3">
+          <input type="date" id="visitDate" />
+          <select id="visitClient"></select>
+          <select id="visitAgent"></select>
+          <select id="visitRoute"></select>
+
+          <div class="multibox">
+            <div class="label">Activități (multiple)</div>
+            <div id="visitActivities" class="chips"></div>
+          </div>
+
+          <input id="visitOtherActivity" placeholder="Altceva (opțional)" />
+          <input id="visitDetails" placeholder="Detalii (opțional)" />
+          <input id="visitObs" placeholder="Observatii (opțional)" />
+
+          <button class="btn" id="btnAddVisit">Adaugă vizită</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Vizite în interval</h2>
+        <div class="row wrap">
+          <label class="inline">
+            Sortare:
+            <select id="sortMode">
+              <option value="date">Data</option>
+              <option value="client">Client</option>
+              <option value="agent">Agent</option>
+              <option value="route">Ruta</option>
+            </select>
+          </label>
+          <button class="btn ghost" id="btnSort">Sortează</button>
+        </div>
+
+        <div class="table-wrap">
+          <table class="table" id="tblVisits">
+            <thead>
+              <tr>
+                <th>Zi</th>
+                <th>Data</th>
+                <th>Client</th>
+                <th>Agent</th>
+                <th>Ruta</th>
+                <th>Activitate</th>
+                <th>Detalii</th>
+                <th>Observatii</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <p class="hint">
+          Ziua este calculată automat din Data. Poți edita celulele direct (click în câmp) și se salvează automat.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ REPORTS ============ -->
+    <section id="tab-reports" class="panel">
+      <div class="grid2">
+        <div class="card">
+          <h2>Raport (interval)</h2>
+          <p class="hint">Setează intervalul din tab-ul Planificare. Raportul se bazează pe vizitele din acel interval.</p>
+
+          <div class="row wrap">
+            <button class="btn" id="btnRefreshReport">Recalculează raport</button>
+          </div>
+
+          <div class="stats" id="reportStats"></div>
+        </div>
+
+        <div class="card">
+          <h2>Definiții</h2>
+          <ul class="hint">
+            <li><b>Nr. vizite</b> = numărul de rânduri (vizite) planificate în interval.</li>
+            <li><b>Nr. clienți unici</b> = câți clienți diferiți apar în interval.</li>
+            <li>Poți extinde ulterior cu km/rutare (momentan amânat).</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>✔️ Datele se salvează local (în browser). Ideal pentru GitHub Pages.</span>
+  </footer>
+</body>
+</html>
