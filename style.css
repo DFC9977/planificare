@@ -218,3 +218,23 @@ select option {
   background-color: #0b1220;
   color: #e9eeff;
 }
+/* FIX dropdown vizibilitate (robust, cross-browser) */
+select {
+  color: #e9eeff;
+  background-color: rgba(255,255,255,.04);
+  border: 1px solid var(--line);
+  color-scheme: dark; /* ajută unele browsere */
+}
+
+/* multe browsere forțează fundal alb la option -> facem textul închis */
+select option {
+  background-color: #ffffff;
+  color: #0b1220;
+}
+
+/* când e selectat (unde browserul permite) */
+select option:checked {
+  background-color: #0b1220;
+  color: #e9eeff;
+}
+
