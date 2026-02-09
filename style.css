@@ -201,15 +201,20 @@ input::placeholder{color:#97a4c7}
 .stat .v{font-size:20px; font-weight:850; margin-top:2px}
 
 .footer{
-  position:fixed; left:0; right:0; bottom:0;
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
   padding:10px 14px;
   border-top:1px solid var(--line);
   background: rgba(11,18,32,.85);
   color:var(--muted);
   font-size:12px;
   backdrop-filter: blur(10px);
+}
+
+/* FIX dropdown vizibilitate */
 select option {
   background-color: #0b1220;
   color: #e9eeff;
-}
 }
