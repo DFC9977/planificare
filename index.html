@@ -12,16 +12,133 @@
 </head>
 
 <body>
+  <!-- =============== AUTH OVERLAY =============== -->
+  <div id="authOverlay" class="overlay">
+    <div class="authCard">
+      <div class="authHeader">
+        <div class="logo">PV</div>
+        <div>
+          <div class="title">Planificare Vizite</div>
+          <div class="subtitle">Login</div>
+        </div>
+      </div>
+
+      <div class="authBody">
+        <input id="loginUser" placeholder="Utilizator" autocomplete="username" />
+        <input id="loginPass" placeholder="Parolă" type="password" autocomplete="current-password" />
+        <button class="btn" id="btnLogin">Intră</button>
+
+        <div class="hint">
+          Implicit: <b>admin</b> / <b>admin123</b> (coordonator). Schimbă parola după login din Setări Utilizatori.
+        </div>
+        <div id="loginError" class="errorText"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============== CLIENT DETAILS MODAL =============== -->
+  <div id="clientModal" class="overlay hidden">
+    <div class="modalCard">
+      <div class="modalTop">
+        <div>
+          <div class="modalTitle" id="cmTitle">Fișă Client</div>
+          <div class="hint" id="cmSubtitle"></div>
+        </div>
+        <button class="btn ghost" id="btnCloseClientModal">Închide</button>
+      </div>
+
+      <div class="modalBody">
+        <div class="grid2">
+          <div class="card flat">
+            <h3>Date client</h3>
+            <div class="form">
+              <label class="field">
+                <span>Nume</span>
+                <input id="cmName" />
+              </label>
+              <label class="field">
+                <span>Județ</span>
+                <input id="cmCounty" placeholder="ex: Maramures" />
+              </label>
+              <label class="field">
+                <span>Adresă</span>
+                <input id="cmAddress" placeholder="stradă, nr, localitate..." />
+              </label>
+              <label class="field">
+                <span>Telefon</span>
+                <input id="cmPhone" placeholder="07xx..." />
+              </label>
+
+              <div class="divider"></div>
+
+              <h4>Frecvență vizite (lunar)</h4>
+              <div class="row wrap">
+                <div class="stepper">
+                  <button class="stepBtn" id="cmMinus" type="button">−</button>
+                  <div class="stepVal" id="cmCount">0</div>
+                  <button class="stepBtn" id="cmPlus" type="button">+</button>
+                </div>
+                <div class="hint">nr vizite/lună</div>
+              </div>
+
+              <div class="divider"></div>
+
+              <h4>Săptămâni vizite (S1–S5)</h4>
+              <div id="cmWeeks" class="row wrap"></div>
+
+              <div class="divider"></div>
+
+              <button class="btn" id="btnSaveClientModal">Salvează</button>
+            </div>
+          </div>
+
+          <div class="card flat">
+            <h3>Persoane de contact</h3>
+            <div class="hint">Poți adăuga oricâte contacte. (Nume + rol + telefon + email + observații)</div>
+
+            <div id="cmContacts" class="stack"></div>
+
+            <button class="btn ghost" id="btnAddContact">+ Adaugă contact</button>
+
+            <div class="divider"></div>
+
+            <h3>Rapoarte (viitor)</h3>
+            <div class="hint">
+              Zonă pregătită pentru rapoarte automate din surse externe (vânzări, ultimele discuții etc.).
+              Momentan doar placeholder.
+            </div>
+            <div class="reportBox">
+              <div class="reportItem">
+                <div class="k">Ultimele vânzări</div>
+                <div class="v muted">Neconfigurat</div>
+              </div>
+              <div class="reportItem">
+                <div class="k">Sumar ultima lună</div>
+                <div class="v muted">Neconfigurat</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modalBottom">
+        <button class="btn danger" id="btnDeleteClientModal">Șterge client</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============== APP =============== -->
   <header class="topbar">
     <div class="brand">
       <div class="logo">PV</div>
       <div>
         <div class="title">Planificare Vizite</div>
-        <div class="subtitle">Import Excel → Planificare → Export Excel</div>
+        <div class="subtitle" id="whoami">—</div>
       </div>
     </div>
 
     <div class="top-actions">
+      <button class="btn ghost" id="btnLogout">Logout</button>
       <button class="btn ghost" id="btnReset">Reset date</button>
       <button class="btn" id="btnExport">📤 Export Excel</button>
     </div>
@@ -34,6 +151,7 @@
       <button class="tab" data-tab="tab-activities">Activități</button>
       <button class="tab" data-tab="tab-plan">Planificare</button>
       <button class="tab" data-tab="tab-reports">Raport</button>
+      <button class="tab" data-tab="tab-users" id="tabUsersBtn">Utilizatori</button>
     </nav>
 
     <!-- ============ CLIENTS ============ -->
@@ -42,10 +160,12 @@
         <div class="card">
           <h2>Import clienți din Excel</h2>
           <p class="hint">
-            Excel-ul poate avea coloane cu nume variate. Aplicația caută automat: <b>Client/Nume</b> și <b>Adresa</b>.
+            Se caută automat coloane: <b>Client/Nume</b>, <b>Județ</b>, <b>Adresă</b>, <b>Telefon</b>.
+            Deduplicare: <b>Nume + Județ</b> (fallback pe Nume).
           </p>
+
           <input type="file" id="fileClients" accept=".xlsx,.xls" />
-          <div class="row">
+          <div class="row wrap">
             <label class="inline">
               Sheet:
               <input id="sheetName" placeholder="(gol = primul sheet)" />
@@ -58,13 +178,16 @@
           <h3>Adaugă client manual</h3>
           <div class="form">
             <input id="newClientName" placeholder="Nume client" />
+            <input id="newClientCounty" placeholder="Județ (opțional)" />
             <input id="newClientAddress" placeholder="Adresă (opțional)" />
+            <input id="newClientPhone" placeholder="Telefon (opțional)" />
             <button class="btn" id="btnAddClient">Adaugă client</button>
           </div>
         </div>
 
         <div class="card">
           <h2>Lista clienți</h2>
+
           <div class="row wrap">
             <input id="clientSearch" placeholder="Caută client..." />
             <button class="btn ghost" id="btnClearClients">Șterge toți clienții</button>
@@ -75,8 +198,10 @@
               <thead>
                 <tr>
                   <th>Client</th>
+                  <th>Județ</th>
+                  <th>Telefon</th>
                   <th>Adresă</th>
-                  <th>Frecvență</th>
+                  <th>Vizite/lună</th>
                   <th>Săpt.</th>
                   <th></th>
                 </tr>
@@ -86,7 +211,7 @@
           </div>
 
           <p class="hint">
-            Frecvență: <b>lunar</b> cu săptămâni în care are loc vizita (1–5). Planificarea se generează pe interval în tab-ul Planificare.
+            Click pe un client → deschide <b>Fișa Client</b> (contacte, date complete, rapoarte viitoare).
           </p>
         </div>
       </div>
@@ -97,10 +222,13 @@
       <div class="grid2">
         <div class="card">
           <h2>Agenți</h2>
+          <div class="hint">Coordonatorul poate gestiona agenți. Agentul vede doar datele lui.</div>
+
           <div class="form">
             <input id="newAgentName" placeholder="Nume agent" />
             <button class="btn" id="btnAddAgent">Adaugă agent</button>
           </div>
+
           <div class="table-wrap">
             <table class="table" id="tblAgents">
               <thead><tr><th>Agent</th><th></th></tr></thead>
@@ -116,6 +244,7 @@
             <select id="newRouteAgent"></select>
             <button class="btn" id="btnAddRoute">Adaugă rută</button>
           </div>
+
           <div class="table-wrap">
             <table class="table" id="tblRoutes">
               <thead><tr><th>Rută</th><th>Agent</th><th></th></tr></thead>
@@ -133,6 +262,7 @@
         <div class="card">
           <h2>Listă activități (configurabilă)</h2>
           <p class="hint">Activitățile se selectează multiple la vizită + există câmp „Altceva”.</p>
+
           <div class="form">
             <input id="newActivityName" placeholder="Ex: comanda" />
             <button class="btn" id="btnAddActivity">Adaugă activitate</button>
@@ -161,6 +291,7 @@
     <section id="tab-plan" class="panel">
       <div class="card">
         <h2>Interval planificare</h2>
+
         <div class="row wrap">
           <label class="inline">
             De la:
@@ -171,12 +302,20 @@
             <input type="date" id="toDate" />
           </label>
 
+          <div class="grow"></div>
+
+          <label class="inline" id="agentFilterWrap">
+            Agent:
+            <select id="agentFilter"></select>
+          </label>
+
           <button class="btn" id="btnGenerate">Generează vizite (din frecvențe)</button>
           <button class="btn ghost" id="btnClearVisits">Șterge vizitele din interval</button>
         </div>
 
         <p class="hint">
-          Generarea creează vizite în săptămânile selectate per client. Apoi le poți ajusta manual în tabel (date, agent, rută, activități etc.).
+          Generarea creează vizite în săptămânile selectate per client. Apoi le poți ajusta manual în tabel.
+          Agent-ul vede doar vizitele lui.
         </p>
       </div>
 
@@ -236,7 +375,7 @@
         </div>
 
         <p class="hint">
-          Ziua este calculată automat din Data. Poți edita celulele direct (click în câmp) și se salvează automat.
+          Ziua este calculată automat din Data. Poți edita celulele. Agent-ul nu poate vedea/edita vizitele altor agenți.
         </p>
       </div>
     </section>
@@ -246,7 +385,7 @@
       <div class="grid2">
         <div class="card">
           <h2>Raport (interval)</h2>
-          <p class="hint">Setează intervalul din tab-ul Planificare. Raportul se bazează pe vizitele din acel interval.</p>
+          <p class="hint">Raportul se bazează pe vizitele din intervalul ales (și filtrul de agent dacă e cazul).</p>
 
           <div class="row wrap">
             <button class="btn" id="btnRefreshReport">Recalculează raport</button>
@@ -260,15 +399,51 @@
           <ul class="hint">
             <li><b>Nr. vizite</b> = numărul de rânduri (vizite) planificate în interval.</li>
             <li><b>Nr. clienți unici</b> = câți clienți diferiți apar în interval.</li>
-            <li>Poți extinde ulterior cu km/rutare (momentan amânat).</li>
+            <li>Rapoarte automate pe client (vânzări etc.) – pregătite în Fișa Client, de implementat ulterior.</li>
           </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ USERS (COORD ONLY) ============ -->
+    <section id="tab-users" class="panel">
+      <div class="grid2">
+        <div class="card">
+          <h2>Utilizatori (coordonator)</h2>
+          <div class="hint">Aici creezi conturi pentru agenți și coordonatori. (Local-only)</div>
+
+          <div class="form">
+            <input id="newUsername" placeholder="Username (ex: ion.pop)" />
+            <input id="newPassword" placeholder="Parolă" type="password" />
+            <select id="newRole">
+              <option value="agent">agent</option>
+              <option value="coordonator">coordonator</option>
+            </select>
+            <select id="newUserAgent"></select>
+            <button class="btn" id="btnCreateUser">Creează utilizator</button>
+          </div>
+
+          <p class="hint">
+            Pentru rolul <b>agent</b>, selectează agentul asociat. Pentru coordonator, poți lăsa necompletat.
+          </p>
+        </div>
+
+        <div class="card">
+          <h2>Lista utilizatori</h2>
+          <div class="table-wrap">
+            <table class="table" id="tblUsers">
+              <thead><tr><th>Username</th><th>Rol</th><th>Agent</th><th></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p class="hint">Schimbarea parolei se face prin ștergere + recreare (MVP). Putem extinde ulterior.</p>
         </div>
       </div>
     </section>
   </main>
 
   <footer class="footer">
-    <span>✔️ Datele se salvează local (în browser). Ideal pentru GitHub Pages.</span>
+    <span>✔️ Datele se salvează local (în browser). Pentru securitate reală: Firebase/Supabase.</span>
   </footer>
 </body>
 </html>
