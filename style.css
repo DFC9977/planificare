@@ -37,13 +37,13 @@ body{
   font-weight:800;
 }
 .title{font-weight:800}
-.subtitle{font-size:12px; color:var(--muted)}
+.subtitle{font-size:12px; color:#a9b5da}
 
 .top-actions{display:flex; gap:10px; align-items:center}
 
 .container{
-  max-width:1100px;
-  margin: 14px auto 60px;
+  max-width:1200px;
+  margin: 14px auto 76px;
   padding: 0 12px;
 }
 
@@ -78,10 +78,14 @@ body{
   padding:14px;
   margin: 12px 0;
 }
+.card.flat{background: rgba(15,26,51,.65)}
 
 h2{margin:0 0 10px}
 h3{margin:12px 0 8px}
-.hint{color:var(--muted); font-size:13px; line-height:1.35}
+h4{margin:12px 0 8px}
+
+.hint{color:#a9b5da; font-size:13px; line-height:1.35}
+.muted{color:var(--muted)}
 
 .grid2{display:grid; grid-template-columns: 1fr; gap:12px}
 .grid3{display:grid; grid-template-columns: 1fr; gap:10px}
@@ -94,17 +98,18 @@ h3{margin:12px 0 8px}
 .row{display:flex; gap:10px; align-items:center}
 .row.wrap{flex-wrap:wrap}
 .inline{display:flex; gap:8px; align-items:center; color:var(--muted); font-size:13px}
+.grow{flex:1}
 
 input, select{
   width:100%;
   padding:10px 11px;
   border-radius:12px;
-  border:1px solid var(--line);
-  background: rgba(255,255,255,.04);
+  border:1px solid rgba(34,49,92,.9);
+  background: rgba(255,255,255,.06);
   color:var(--text);
   outline:none;
 }
-input::placeholder{color:#97a4c7}
+input::placeholder{color:#b6c2e6; opacity: 0.85}
 
 .btn{
   padding:10px 12px;
@@ -137,13 +142,13 @@ input::placeholder{color:#97a4c7}
 .table{
   width:100%;
   border-collapse: collapse;
-  min-width: 720px;
+  min-width: 820px;
 }
 .table th, .table td{
   border-bottom:1px solid rgba(34,49,92,.65);
   padding:10px;
   text-align:left;
-  font-size: 13px;
+  font-size: 14px;
 }
 .table th{
   position: sticky; top:0;
@@ -157,7 +162,7 @@ input::placeholder{color:#97a4c7}
   color: var(--text);
   padding: 0;
   outline: none;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .multibox{
@@ -201,10 +206,7 @@ input::placeholder{color:#97a4c7}
 .stat .v{font-size:20px; font-weight:850; margin-top:2px}
 
 .footer{
-  position:fixed;
-  left:0;
-  right:0;
-  bottom:0;
+  position:fixed; left:0; right:0; bottom:0;
   padding:10px 14px;
   border-top:1px solid var(--line);
   background: rgba(11,18,32,.85);
@@ -213,28 +215,130 @@ input::placeholder{color:#97a4c7}
   backdrop-filter: blur(10px);
 }
 
-/* FIX dropdown vizibilitate */
-select option {
-  background-color: #0b1220;
-  color: #e9eeff;
+/* Dropdown visibility (cross-browser): many browsers force white bg on options */
+select { color-scheme: dark; }
+select option { background-color: #ffffff; color: #0b1220; }
+
+/* Stepper (touch-friendly) */
+.stepper{
+  display:flex;
+  align-items:center;
+  gap:8px;
 }
-/* FIX dropdown vizibilitate (robust, cross-browser) */
-select {
-  color: #e9eeff;
-  background-color: rgba(255,255,255,.04);
-  border: 1px solid var(--line);
-  color-scheme: dark; /* ajută unele browsere */
+.stepper .stepBtn{
+  width:44px;
+  height:44px;
+  border-radius:12px;
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.06);
+  color: var(--text);
+  font-weight: 900;
+  font-size: 20px;
+  line-height: 1;
+  cursor:pointer;
+}
+.stepper .stepBtn:active{ transform: scale(0.98); }
+.stepper .stepVal{
+  min-width:58px;
+  height:44px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background: rgba(255,255,255,.04);
+  font-weight: 850;
+  font-size: 16px;
+}
+@media (max-width: 520px){
+  .stepper .stepBtn{ width:48px; height:48px; }
+  .stepper .stepVal{ height:48px; min-width:64px; font-size:17px; }
 }
 
-/* multe browsere forțează fundal alb la option -> facem textul închis */
-select option {
-  background-color: #ffffff;
-  color: #0b1220;
+/* Overlay / Modal / Auth */
+.overlay{
+  position:fixed; inset:0;
+  background: rgba(0,0,0,.55);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding: 16px;
+  z-index: 1000;
+}
+.overlay.hidden{ display:none; }
+
+.authCard{
+  width: min(420px, 100%);
+  border:1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(15,26,51,.92);
+  padding: 14px;
+}
+.authHeader{ display:flex; gap:10px; align-items:center; margin-bottom: 10px; }
+.authBody{ display:grid; gap:10px; }
+.errorText{ color: #ff9db0; font-size: 13px; }
+
+.modalCard{
+  width: min(1050px, 100%);
+  max-height: min(92vh, 980px);
+  overflow: auto;
+  border:1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(15,26,51,.96);
+  padding: 14px;
+}
+.modalTop{
+  display:flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  position: sticky;
+  top: 0;
+  background: rgba(15,26,51,.98);
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(34,49,92,.6);
+  margin-bottom: 10px;
+}
+.modalTitle{ font-weight: 900; font-size: 18px; }
+.modalBody{ padding-bottom: 10px; }
+.modalBottom{
+  display:flex;
+  justify-content:flex-end;
+  gap: 10px;
+  border-top: 1px solid rgba(34,49,92,.6);
+  padding-top: 10px;
 }
 
-/* când e selectat (unde browserul permite) */
-select option:checked {
-  background-color: #0b1220;
-  color: #e9eeff;
-}
+.field{ display:grid; gap:6px; }
+.field span{ color: var(--muted); font-size: 12px; }
 
+.stack{ display:grid; gap: 10px; margin: 12px 0; }
+.contactCard{
+  border:1px solid rgba(34,49,92,.8);
+  border-radius: 14px;
+  padding: 10px;
+  background: rgba(255,255,255,.03);
+}
+.contactTop{
+  display:flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.contactTop .name{ font-weight: 850; }
+.reportBox{
+  margin-top: 10px;
+  border: 1px solid rgba(34,49,92,.8);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.reportItem{
+  display:flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px;
+  border-bottom: 1px solid rgba(34,49,92,.6);
+}
+.reportItem:last-child{ border-bottom:none; }
+.reportItem .k{ color: var(--muted); font-size: 13px; }
+.reportItem .v{ font-weight: 850; }
