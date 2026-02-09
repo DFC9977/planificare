@@ -208,4 +208,8 @@ input::placeholder{color:#97a4c7}
   color:var(--muted);
   font-size:12px;
   backdrop-filter: blur(10px);
+select option {
+  background-color: #0b1220;
+  color: #e9eeff;
+}
 }
